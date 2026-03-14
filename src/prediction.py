@@ -20,6 +20,7 @@ def generate_long_term_forecast(report_df, categories, horizons=[1, 3, 6]):
         mape_base = float(str(row_kat['MAPE 30D (%)'].values[0]).replace('%',''))
 
         for month in horizons:
+            # Simulasi degradasi akurasi (error nambah 15% tiap bulan)
             error_multiplier = 1 + (month * 0.15) if month > 1 else 1.0
             pred_total = int(total_pred_1m * month)
             
@@ -27,6 +28,7 @@ def generate_long_term_forecast(report_df, categories, horizons=[1, 3, 6]):
             mape_sim = min(mape_base + (month * 2), 45) if month > 1 else mape_base
             vol_acc_sim = max(0, vol_acc_base - (month * 3)) if month > 1 else vol_acc_base
             
+            # Safety stock: Prediksi * (MAPE + Risk Factor)
             safe_perc = min(mape_sim + (month * 1.5), 40)
             safety_stock = np.ceil(pred_total * (safe_perc / 100))
             
@@ -67,13 +69,14 @@ def run():
     full_df = pd.concat(all_dfs, ignore_index=True).sort_values('Waktu Pesanan Dibuat')
     categories = full_df['Kategori'].unique()
 
-    # --- 3. ENSEMBLE INFERENCE (Simulation) ---
+    # --- 3. ENSEMBLE INFERENCE (Simulation/Logic) ---
     final_report_list = []
     with st.spinner("Calculating Optimized Ensemble Forecasts..."):
         for kat in categories:
             temp = full_df[full_df['Kategori'] == kat].tail(30)
             y_act = temp['Net_Sales'].values
             
+            # Simulasi Model Ensemble (Ganti dengan model.predict lo kalau sudah ada)
             p_v = np.random.normal(np.mean(y_act), np.std(y_act), 30).clip(min=0)
             p_m = np.random.normal(np.mean(y_act), np.std(y_act)*0.8, 30).clip(min=0)
             
@@ -105,26 +108,24 @@ def run():
     target_kat = st.sidebar.selectbox("Pilih Kategori Produk:", categories)
     target_hz = st.sidebar.radio("Pilih Horizon Perencanaan:", ["1 Months", "3 Months", "6 Months"])
 
-    # --- 5. DATA PROCESSING FOR CHART ---
+    # --- 5. PREP DATA GRAFIK (MENYATU) ---
     row_data = long_term_report[(long_term_report['Kategori'] == target_kat) & 
                                 (long_term_report['Horizon'] == target_hz)].iloc[0]
     
     df_hist = full_df[full_df['Kategori'] == target_kat].tail(30)
     last_date = df_hist['Waktu Pesanan Dibuat'].max()
-    last_val = df_hist['Net_Sales'].iloc[-1] # Nilai terakhir buat penyambung
+    last_val = df_hist['Net_Sales'].iloc[-1]
     
     num_months = int(target_hz.split(' ')[0])
     total_days = num_months * 30
-    
-    # Timeline masa depan dimulai H+1
     forecast_dates = [last_date + pd.Timedelta(days=i) for i in range(1, total_days + 1)]
     
-    # Simulasi forecast
+    # Generate daily forecast
     daily_avg = row_data['Est. Demand'] / total_days
     daily_forecast = np.random.normal(daily_avg, daily_avg * 0.2, total_days).clip(min=0)
     daily_forecast = np.ceil(daily_forecast * (row_data['Est. Demand'] / (sum(daily_forecast)+1e-7)))
 
-    # Agar menyambung: Tambahkan titik terakhir historis ke awal forecast
+    # Agar Garis Menyambung (Titik Terakhir Histori + Data Forecast)
     conn_dates = [last_date] + forecast_dates
     conn_values = [last_val] + daily_forecast.tolist()
 
@@ -138,7 +139,7 @@ def run():
         row_heights=[0.3, 0.7]
     )
 
-    # A. Tabel Strategis
+    # A. Tabel Strategis (Warna Font Hitam)
     fig.add_trace(
         go.Table(
             header=dict(
@@ -151,21 +152,21 @@ def run():
                     [row_data['MAE']], [f"{row_data['Vol Acc (%)']:.2f}%"],
                     [int(row_data['Safety Stock'])], [int(row_data['Total Procurement'])]
                 ],
-                fill_color='#f8f9fa', font=dict(color='#1f2c39', size=11), align='center'
+                fill_color='#f8f9fa', font=dict(color='#1f2c39', size=11), align='center' # Font Hitam
             )
         ), row=1, col=1
     )
 
     # B. Grafik (Menyatu)
-    # Historis (Solid)
+    # Historis (Garis Abu-abu Solid)
     fig.add_trace(go.Scatter(x=df_hist['Waktu Pesanan Dibuat'], y=df_hist['Net_Sales'], 
                              name='Actual (Last 30D)', line=dict(color='#7f8c8d', width=2)), row=2, col=1)
     
-    # Forecast (Dashed & Connected)
+    # Forecast (Garis Biru Putus-putus)
     fig.add_trace(go.Scatter(x=conn_dates, y=conn_values, 
                              name=f'Forecast {target_hz}', line=dict(color='#3498db', width=3, dash='dash')), row=2, col=1)
 
-    # Safety Margin Area
+    # Safety Margin Area (Merah Transparan)
     daily_safe = row_data['Safety Stock'] / total_days
     fig.add_trace(go.Scatter(
         x=conn_dates + conn_dates[::-1],
@@ -174,15 +175,20 @@ def run():
         line=dict(color='rgba(255,255,255,0)'), name='Safety Margin zone', showlegend=True
     ), row=2, col=1)
 
-    # FIX ERROR: add_vline dibatasi hanya pada sumbu di row 2
-    fig.add_shape(type="line", x0=last_date, x1=last_date, y0=0, y1=1,
-                  xref="x2", yref="paper", line=dict(color="#2ecc71", width=2))
+    # Garis Vertikal "Today" (Pake Scatter biar anti-error)
+    fig.add_trace(go.Scatter(
+        x=[last_date, last_date], 
+        y=[0, max(conn_values) * 1.5], 
+        mode="lines", 
+        name="Hari Ini", 
+        line=dict(color="#2ecc71", width=2, dash="solid")
+    ), row=2, col=1)
 
     fig.update_layout(height=750, template="plotly_white", margin=dict(t=20, b=20),
                       legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
     
     fig.update_yaxes(title_text="Quantity (Units)", row=2, col=1)
-    fig.update_xaxes(title_text="Tanggal / Timeline", row=2, col=1)
+    fig.update_xaxes(title_text="Timeline Perencanaan", row=2, col=1)
     
     st.plotly_chart(fig, use_container_width=True)
 
