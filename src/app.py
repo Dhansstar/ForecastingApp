@@ -1,6 +1,9 @@
 import streamlit as st
 import os
 import sys
+# Remove 'from src'
+import eda
+import prediction
 
 # Menambahkan folder src ke path agar bisa di-import
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
