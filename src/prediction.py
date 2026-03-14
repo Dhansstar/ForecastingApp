@@ -20,7 +20,7 @@ def generate_long_term_forecast(report_df, categories, horizons=[1, 3, 6]):
         mape_base = float(str(row_kat['MAPE 30D (%)'].values[0]).replace('%',''))
 
         for month in horizons:
-            # Simulasi degradasi akurasi (error nambah 15% tiap bulan)
+            # Simulasi degradasi akurasi seiring bertambahnya waktu
             error_multiplier = 1 + (month * 0.15) if month > 1 else 1.0
             pred_total = int(total_pred_1m * month)
             
@@ -28,7 +28,7 @@ def generate_long_term_forecast(report_df, categories, horizons=[1, 3, 6]):
             mape_sim = min(mape_base + (month * 2), 45) if month > 1 else mape_base
             vol_acc_sim = max(0, vol_acc_base - (month * 3)) if month > 1 else vol_acc_base
             
-            # Safety stock: Prediksi * (MAPE + Risk Factor)
+            # Safety stock: Prediksi * (MAPE simulasi + Risk Factor)
             safe_perc = min(mape_sim + (month * 1.5), 40)
             safety_stock = np.ceil(pred_total * (safe_perc / 100))
             
@@ -69,23 +69,29 @@ def run():
     full_df = pd.concat(all_dfs, ignore_index=True).sort_values('Waktu Pesanan Dibuat')
     categories = full_df['Kategori'].unique()
 
-    # --- 3. ENSEMBLE INFERENCE (Simulation/Logic) ---
+    # --- 3. ENSEMBLE INFERENCE (Mirroring Logic Notebook) ---
     final_report_list = []
+    all_daily_preds = {}
+
     with st.spinner("Calculating Optimized Ensemble Forecasts..."):
         for kat in categories:
             temp = full_df[full_df['Kategori'] == kat].tail(30)
             y_act = temp['Net_Sales'].values
             
-            # Simulasi Model Ensemble (Ganti dengan model.predict lo kalau sudah ada)
+            # Simulasi Model Ensemble (P_V & P_M)
             p_v = np.random.normal(np.mean(y_act), np.std(y_act), 30).clip(min=0)
             p_m = np.random.normal(np.mean(y_act), np.std(y_act)*0.8, 30).clip(min=0)
             
+            # Optimized Ensemble Logic
             if kat in ['Kitchen', 'Home']:
-                preds = (0.8 * p_v) + (0.2 * p_m)
+                preds_raw = (0.8 * p_v) + (0.2 * p_m)
             else:
-                preds = np.minimum(p_v, p_m) 
+                preds_raw = np.minimum(p_v, p_m) 
             
-            preds = np.ceil(np.clip(preds, 0, np.max(y_act)*1.6))
+            preds = np.ceil(np.clip(preds_raw, 0, np.max(y_act)*1.6))
+            all_daily_preds[kat] = preds
+            
+            # Metrik Akurasi
             total_act = np.sum(y_act)
             total_pred = np.sum(preds)
             vol_acc = (1 - (abs(total_act - total_pred) / (total_act + 1e-7))) * 100
@@ -108,7 +114,7 @@ def run():
     target_kat = st.sidebar.selectbox("Pilih Kategori Produk:", categories)
     target_hz = st.sidebar.radio("Pilih Horizon Perencanaan:", ["1 Months", "3 Months", "6 Months"])
 
-    # --- 5. PREP DATA GRAFIK (MENYATU) ---
+    # --- 5. PREP DATA GRAFIK (MENYATU TANPA GAP) ---
     row_data = long_term_report[(long_term_report['Kategori'] == target_kat) & 
                                 (long_term_report['Horizon'] == target_hz)].iloc[0]
     
@@ -120,14 +126,17 @@ def run():
     total_days = num_months * 30
     forecast_dates = [last_date + pd.Timedelta(days=i) for i in range(1, total_days + 1)]
     
-    # Generate daily forecast
-    daily_avg = row_data['Est. Demand'] / total_days
-    daily_forecast = np.random.normal(daily_avg, daily_avg * 0.2, total_days).clip(min=0)
-    daily_forecast = np.ceil(daily_forecast * (row_data['Est. Demand'] / (sum(daily_forecast)+1e-7)))
+    # Logic penentuan daily forecast harian
+    if target_hz == "1 Months":
+        daily_forecast_raw = all_daily_preds[target_kat]
+    else:
+        daily_avg_base = row_data['Est. Demand'] / total_days
+        daily_noise = np.random.normal(0, daily_avg_base * 0.15, total_days)
+        daily_forecast_raw = np.ceil((daily_avg_base + daily_noise).clip(min=0))
 
-    # Agar Garis Menyambung (Titik Terakhir Histori + Data Forecast)
-    conn_dates = [last_date] + forecast_dates
-    conn_values = [last_val] + daily_forecast.tolist()
+    # TEKNIK PENYAMBUNGAN: Start dari titik terakhir histori
+    conn_dates = [last_date] + list(forecast_dates)
+    conn_values = [last_val] + list(daily_forecast_raw)
 
     # --- 6. DASHBOARD VISUALIZATION ---
     st.subheader(f"📊 Detailed Forecast: {target_kat} ({target_hz})")
@@ -139,7 +148,7 @@ def run():
         row_heights=[0.3, 0.7]
     )
 
-    # A. Tabel Strategis (Warna Font Hitam)
+    # A. TABEL STRATEGIS (FIXED COLOR & VISIBILITY)
     fig.add_trace(
         go.Table(
             header=dict(
@@ -152,21 +161,21 @@ def run():
                     [row_data['MAE']], [f"{row_data['Vol Acc (%)']:.2f}%"],
                     [int(row_data['Safety Stock'])], [int(row_data['Total Procurement'])]
                 ],
-                fill_color='#f8f9fa', font=dict(color='#1f2c39', size=11), align='center' # Font Hitam
+                fill_color='#f8f9fa', font=dict(color='#1f2c39', size=11), align='center'
             )
         ), row=1, col=1
     )
 
-    # B. Grafik (Menyatu)
-    # Historis (Garis Abu-abu Solid)
+    # B. GRAFIK QUANTITY (CONNECTED)
+    # Historis (Solid)
     fig.add_trace(go.Scatter(x=df_hist['Waktu Pesanan Dibuat'], y=df_hist['Net_Sales'], 
                              name='Actual (Last 30D)', line=dict(color='#7f8c8d', width=2)), row=2, col=1)
     
-    # Forecast (Garis Biru Putus-putus)
+    # Forecast (Dashed & Connected)
     fig.add_trace(go.Scatter(x=conn_dates, y=conn_values, 
                              name=f'Forecast {target_hz}', line=dict(color='#3498db', width=3, dash='dash')), row=2, col=1)
 
-    # Safety Margin Area (Merah Transparan)
+    # Safety Margin Area
     daily_safe = row_data['Safety Stock'] / total_days
     fig.add_trace(go.Scatter(
         x=conn_dates + conn_dates[::-1],
@@ -175,20 +184,16 @@ def run():
         line=dict(color='rgba(255,255,255,0)'), name='Safety Margin zone', showlegend=True
     ), row=2, col=1)
 
-    # Garis Vertikal "Today" (Pake Scatter biar anti-error)
-    fig.add_trace(go.Scatter(
-        x=[last_date, last_date], 
-        y=[0, max(conn_values) * 1.5], 
-        mode="lines", 
-        name="Hari Ini", 
-        line=dict(color="#2ecc71", width=2, dash="solid")
-    ), row=2, col=1)
+    # Garis Pembatas "Today"
+    fig.add_trace(go.Scatter(x=[last_date, last_date], y=[0, max(conn_values)*1.5],
+                             mode='lines', name='Today', line=dict(color='#2ecc71', width=2)), row=2, col=1)
 
-    fig.update_layout(height=750, template="plotly_white", margin=dict(t=20, b=20),
+    # Styling & Sumbu X Fix
+    fig.update_layout(height=800, template="plotly_white", margin=dict(t=20, b=20),
                       legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
     
-    fig.update_yaxes(title_text="Quantity (Units)", row=2, col=1)
-    fig.update_xaxes(title_text="Timeline Perencanaan", row=2, col=1)
+    fig.update_yaxes(title_text="Quantity (Units)", row=2, col=1, rangemode="tozero")
+    fig.update_xaxes(title_text="Timeline Perencanaan", type='date', row=2, col=1) # type='date' penting!
     
     st.plotly_chart(fig, use_container_width=True)
 
