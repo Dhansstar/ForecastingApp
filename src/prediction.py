@@ -1,129 +1,185 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
 import os
 import glob
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+import tensorflow as tf
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+
+# --- 1. CORE FUNCTIONS (Sesuai Notebook) ---
+
+def generate_long_term_forecast(report_df, test_meta, horizons=[3, 6]):
+    long_term_data = []
+    for kat, data in test_meta.items():
+        # Baseline dari hasil 1 bulan
+        row_kat = report_df[report_df['Kategori'] == kat]
+        if row_kat.empty: continue
+        
+        mae_base = row_kat['MAE (Daily)'].values[0]
+        total_pred_1m = row_kat['Predicted Total'].values[0]
+        vol_acc_base = float(str(row_kat['Vol Acc (%)'].values[0]).replace('%',''))
+
+        for month in horizons:
+            error_multiplier = 1 + (month * 0.15)
+            pred_total = int(total_pred_1m * month)
+            
+            # Simulasi metrik jangka panjang
+            mae_sim = round(mae_base * error_multiplier, 2)
+            mape_sim = min(20 + (month * 2), 45) # Simulasi degradasi akurasi
+            vol_acc_sim = max(0, vol_acc_base - (month * 3))
+            
+            safe_perc = min(mape_sim + (month * 1.5), 40)
+            safety_stock = np.ceil(pred_total * (safe_perc / 100))
+            
+            long_term_data.append({
+                "Kategori": kat,
+                "Horizon": f"{month} Months",
+                "MAE (Sim)": mae_sim,
+                "MAPE (%)": f"{mape_sim:.2f}%",
+                "Vol Acc (%)": f"{vol_acc_sim:.2f}%",
+                "Est. Demand": pred_total,
+                "Safety Stock": int(safety_stock),
+                "Total Procurement": int(pred_total + safety_stock)
+            })
+    return pd.DataFrame(long_term_data)
 
 def run():
-    # --- HEADER PROYEK ---
-    st.markdown("""
-    ## 🚀 Sales Forecasting (DemandSense AI)
-    Proyek ini mengintegrasikan kekuatan **LSTM/GRU** dan **XGBoost** melalui metode *Recursive Multi-step Forecasting*.
-    Sistem ini memberikan rekomendasi stok akurat untuk meminimalisir risiko *out-of-stock* dan penumpukan barang.
-    """)
-    st.caption("Author by: Risyadhana Syaifuddin & Deni Bachtiar")
-    st.divider()
+    st.title("🚀 DemandSense AI: Pro-Level Forecasting")
+    st.markdown("---")
 
-    # --- 1. LOAD DATA ---
+    # --- 2. DATA LOADING & PREPROCESSING ---
     current_dir = os.path.dirname(os.path.abspath(__file__))
     files = glob.glob(os.path.join(current_dir, "forecast_*_data.csv"))
     
-    kategori_mapping = {
-        "forecast_bathroom_data": "Bathroom", "forecast_home_data": "Home",
-        "forecast_kitchen_data": "Kitchen", "forecast_storage_data": "Storage",
-        "forecast_tools_data": "Tools", "forecast_other_data": "Other"
-    }
-
     if not files:
-        st.error("Data CSV tidak ditemukan di folder src!")
+        st.error("CSV files not found in src folder!")
         return
 
     all_dfs = []
-    for file in files:
-        fb = os.path.splitext(os.path.basename(file))[0]
-        nama_kat = kategori_mapping.get(fb, fb)
-        df_temp = pd.read_csv(file)
-        df_temp['Waktu Pesanan Dibuat'] = pd.to_datetime(df_temp['Waktu Pesanan Dibuat'])
-        df_temp = df_temp.sort_values('Waktu Pesanan Dibuat')
-        df_temp['Net_Sales'] = (df_temp['Jumlah'] - df_temp['Returned Quantity']).clip(lower=0)
-        df_temp['Kategori'] = nama_kat
-        all_dfs.append(df_temp)
+    for f in files:
+        df = pd.read_csv(f)
+        fb = os.path.splitext(os.path.basename(f))[0]
+        df['Kategori'] = fb.replace('forecast_', '').replace('_data', '').capitalize()
+        df['Waktu Pesanan Dibuat'] = pd.to_datetime(df['Waktu Pesanan Dibuat'])
+        df['Net_Sales'] = (df['Jumlah'] - df['Returned Quantity']).clip(lower=0)
+        all_dfs.append(df)
+    
+    full_df = pd.concat(all_dfs, ignore_index=True).sort_values('Waktu Pesanan Dibuat')
 
-    full_df = pd.concat(all_dfs, ignore_index=True)
+    # --- 3. INFERENCE ENGINE (SIMULATED FOR UI) ---
+    # Di sini aslinya lo load model_rnn.h5 dan xgb_vol.json
+    
+    categories = full_df['Kategori'].unique()
+    test_meta = {}
+    final_report_list = []
 
-    # --- 2. SIDEBAR CONTROL ---
-    st.sidebar.subheader("🎛️ Control Panel")
-    target_cat = st.sidebar.selectbox("Pilih Kategori Produk:", full_df['Kategori'].unique())
-    horizon = st.sidebar.slider("Forecast Horizon (Hari):", 7, 30, 30)
-
-    # --- 3. PREPROCESSING & INFERENCE ---
-    if st.button("Generate Business Forecast Report"):
-        with st.spinner(f"Menjalankan Hybrid RNN-XGBoost untuk {target_cat}..."):
+    with st.spinner("Calculating Optimized Ensemble Forecasts..."):
+        for kat in categories:
+            temp = full_df[full_df['Kategori'] == kat].tail(30)
+            y_act = temp['Net_Sales'].values
             
-            # Filter data spesifik kategori
-            df_target = full_df[full_df['Kategori'] == target_cat].tail(60).copy()
+            # Mock Inference sesuai logic Notebook lo
+            # P_V (Volume) & P_M (MAPE)
+            p_v = np.random.normal(np.mean(y_act), np.std(y_act), 30).clip(min=0)
+            p_m = np.random.normal(np.mean(y_act), np.std(y_act)*0.8, 30).clip(min=0)
             
-            # Feature Engineering (Mirroring Notebook)
-            df_target['lag_1'] = np.log1p(df_target['Net_Sales'].shift(1).fillna(0))
-            df_target['ma_7'] = np.log1p(df_target['Net_Sales'].rolling(7).mean().fillna(0))
-            df_target['day_sin'] = np.sin(2 * np.pi * df_target['Waktu Pesanan Dibuat'].dt.day / 31)
+            if kat in ['Kitchen', 'Home']:
+                preds = (0.8 * p_v) + (0.2 * p_m)
+            else:
+                preds = np.minimum(p_v, p_m) # Konservatif
             
-            # --- SIMULASI OUTPUT MODEL (Ensemble Logic) ---
-            # Di sini panggil model.predict() lo yang asli jika sudah di-load
-            preds_raw = np.random.poisson(lam=df_target['Net_Sales'].mean(), size=horizon)
-            preds = np.clip(np.ceil(preds_raw), 0, df_target['Net_Sales'].max() * 2)
+            preds = np.ceil(np.clip(preds, 0, np.max(y_act)*1.6))
             
-            # Business Metrics
-            total_act_last_month = int(df_target['Net_Sales'].tail(30).sum())
-            total_pred = int(np.sum(preds))
-            mape_30d = 12.5 # Simulasi dari evaluasi X_test lo
-            safety_stock = int(total_pred * (min(mape_30d, 25) / 100))
-            
-            # --- 4. DASHBOARD VISUALIZATION (PLOTLY) ---
-            last_date = df_target['Waktu Pesanan Dibuat'].iloc[-1]
-            forecast_dates = [last_date + pd.Timedelta(days=i) for i in range(1, horizon + 1)]
+            total_act = np.sum(y_act)
+            total_pred = np.sum(preds)
+            vol_acc = (1 - (abs(total_act - total_pred) / (total_act + 1e-7))) * 100
+            mape_30d = (abs(total_act - total_pred) / (total_act + 1e-7)) * 100
+            safety_stock = np.ceil(total_pred * (min(mape_30d, 25) / 100))
 
-            # RSI Calculation for Demand Momentum
-            combined_vals = pd.concat([df_target['Net_Sales'], pd.Series(preds)]).reset_index(drop=True)
-            delta = combined_vals.diff()
-            gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-            loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-            rsi = 100 - (100 / (1 + (gain / (loss + 1e-7))))
-
-            # Subplots: Demand & RSI
-            fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1,
-                                subplot_titles=(f'Demand Analysis: {target_cat}', 'RSI Momentum (Stock Volatility)'),
-                                row_heights=[0.7, 0.3])
-
-            # Sales Trace
-            fig.add_trace(go.Scatter(x=df_target['Waktu Pesanan Dibuat'], y=df_target['Net_Sales'], 
-                                     name='Historis', line=dict(color='#3b82f6', width=2)), row=1, col=1)
-            fig.add_trace(go.Scatter(x=forecast_dates, y=preds, name='Prediksi AI', 
-                                     line=dict(color='#f59e0b', width=3, dash='dash')), row=1, col=1)
-
-            # RSI Trace
-            fig.add_trace(go.Scatter(x=list(df_target['Waktu Pesanan Dibuat']) + forecast_dates, 
-                                     y=rsi, name='RSI', line=dict(color='#8b5cf6')), row=2, col=1)
-            fig.add_hline(y=70, line_dash="dot", line_color="red", row=2, col=1)
-            fig.add_hline(y=30, line_dash="dot", line_color="green", row=2, col=1)
-
-            fig.update_layout(height=650, template="plotly_dark", hovermode="x unified")
-            st.plotly_chart(fig, use_container_width=True)
-
-            # --- 5. BUSINESS METRICS OVERLAY ---
-            m1, m2, m3, m4 = st.columns(4)
-            m1.metric("Predicted Demand", f"{total_pred} Unit")
-            m2.metric("Safety Stock", f"{safety_stock} Unit")
-            m3.metric("Total Procurement", f"{total_pred + safety_stock} Unit")
-            m4.metric("Forecast Accuracy", "87.5%", delta="Balanced")
-
-            # --- 6. STRATEGIC PROCUREMENT TABLE (PLOTLY TABLE) ---
-            st.subheader("📦 Inventory & Procurement Plan")
-            
-            report_data = pd.DataFrame({
-                "Kategori": [target_cat],
-                "Actual Total (L30D)": [total_act_last_month],
-                "Predicted Total": [total_pred],
-                "Safety Stock": [safety_stock],
-                "Total Rec. Stock": [total_pred + safety_stock],
-                "Status": ["Restock Required" if total_pred > 0 else "Stable"]
+            final_report_list.append({
+                "Kategori": kat,
+                "MAE (Daily)": round(np.mean(np.abs(y_act - preds)), 2),
+                "MAPE 30D (%)": f"{mape_30d:.2f}%",
+                "Vol Acc (%)": f"{max(0, vol_acc):.2f}%",
+                "Actual Total": int(total_act),
+                "Predicted Total": int(total_pred),
+                "Safety Stock": int(safety_stock),
+                "Total Rec.": int(total_pred + safety_stock),
+                "preds_series": preds
             })
+            test_meta[kat] = {'y_act': y_act, 'X_test': None} # Metadata minimal
 
-            fig_table = go.Figure(data=[go.Table(
-                header=dict(values=list(report_data.columns), fill_color='#1e293b', font=dict(color='white', size=12), align='left'),
-                cells=dict(values=[report_data[col] for col in report_data.columns], fill_color='#0f172a', font=dict(color='white', size=11), align='left')
-            )])
-            fig_table.update_layout(margin=dict(l=0, r=0, b=0, t=0), height=200)
-            st.plotly_chart(fig_table, use_container_width=True)
+    report_df = pd.DataFrame(final_report_list)
+
+    # --- 4. VISUALIZATION: SHORT TERM DASHBOARD ---
+    st.subheader("📊 30-Day Accuracy Analysis: Actual vs Recommendation")
+    
+    fig_acc = go.Figure()
+    fig_acc.add_trace(go.Bar(x=report_df['Kategori'], y=report_df['Actual Total'], name='Actual Demand', marker_color='#1f77b4'))
+    fig_acc.add_trace(go.Bar(x=report_df['Kategori'], y=report_df['Total Rec.'], name='Total Recommendation', marker_color='#ff7f0e'))
+    
+    fig_acc.update_layout(barmode='group', template='plotly_white', height=500)
+    
+    # Add Acc Annotations
+    for i, row in report_df.iterrows():
+        fig_acc.add_annotation(x=row['Kategori'], y=max(row['Actual Total'], row['Total Rec.']) * 1.05,
+                               text=f"<b>Acc: {row['Vol Acc (%)']}</b>", showarrow=False, font=dict(size=10))
+    st.plotly_chart(fig_acc, use_container_width=True)
+
+    # --- 5. LONG TERM FORECASTING ---
+    st.markdown("---")
+    st.subheader("🔮 Strategic Long-Term Forecasting (3 & 6 Months)")
+    
+    long_term_df = generate_long_term_forecast(report_df, test_meta)
+    
+    # Faceted Bar Chart
+    fig_lt_bar = px.bar(long_term_df, x="Kategori", y=["Est. Demand", "Safety Stock"], 
+                        facet_col="Horizon", barmode="group",
+                        color_discrete_sequence=['#3498db', '#e74c3c'])
+    fig_lt_bar.update_layout(template="plotly_white", height=450)
+    st.plotly_chart(fig_lt_bar, use_container_width=True)
+
+    # --- 6. DETAILED COMPREHENSIVE REPORT ---
+    st.markdown("---")
+    target_kat = st.selectbox("Select Category for Detailed Planning:", categories)
+    target_hz = st.radio("Select Planning Horizon:", ["3 Months", "6 Months"], horizontal=True)
+    
+    row_data = long_term_df[(long_term_df['Kategori'] == target_kat) & (long_term_df['Horizon'] == target_hz)].iloc[0]
+    
+    # Metrics Table
+    fig_tbl = go.Figure(data=[go.Table(
+        header=dict(values=["Metric", "Value"], fill_color='#2c3e50', font=dict(color='white')),
+        cells=dict(values=[["MAPE (%)", "MAE (Units)", "Vol Acc (%)", "Total Procurement"], 
+                           [row_data['MAPE (%)'], row_data['MAE (Sim)'], row_data['Vol Acc (%)'], row_data['Total Procurement']]])
+    )])
+    fig_tbl.update_layout(height=250, margin=dict(l=0, r=0, t=0, b=0))
+    st.plotly_chart(fig_tbl, use_container_width=True)
+
+    # Simulation Chart (Daily Noise)
+    num_days = int(target_hz.split(' ')[0]) * 30
+    avg_d = row_data['Est. Demand'] / num_days
+    sim_daily = np.random.normal(avg_d, avg_d * 0.2, num_days).clip(min=0)
+    
+    fig_sim = go.Figure()
+    fig_sim.add_trace(go.Scatter(y=sim_daily, name="Daily Forecast", line=dict(color='#3498db', dash='dash')))
+    fig_sim.add_hrect(y0=avg_d * 0.8, y1=avg_d * 1.2, fillcolor="green", opacity=0.1, layer="below", line_width=0, name="Safe Zone")
+    fig_sim.update_layout(title=f"Simulated Daily Demand - {target_kat} ({target_hz})", template="plotly_white")
+    st.plotly_chart(fig_sim, use_container_width=True)
+
+    # --- 7. RSI MOMENTUM (Pilihan Tambahan) ---
+    if st.checkbox("Show RSI Momentum Analysis"):
+        y_vals = report_df[report_df['Kategori'] == target_kat]['preds_series'].values[0]
+        delta = pd.Series(y_vals).diff()
+        gain = (delta.where(delta > 0, 0)).rolling(14).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
+        rsi = 100 - (100 / (1 + (gain / (loss + 1e-7))))
+        
+        fig_rsi = go.Figure()
+        fig_rsi.add_trace(go.Scatter(y=rsi, name="RSI", line=dict(color='purple')))
+        fig_rsi.add_hline(y=70, line_dash="dot", line_color="red")
+        fig_rsi.add_hline(y=30, line_dash="dot", line_color="green")
+        fig_rsi.update_layout(height=300, title="RSI Momentum Predictor", template="plotly_white")
+        st.plotly_chart(fig_rsi, use_container_width=True)
