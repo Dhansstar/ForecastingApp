@@ -44,7 +44,9 @@ def load_data():
     return df
 
 def run():
-    st.markdown('<div id="text-split"><h2 class="animate-header">MARKET DEMAND AND SALES ANALYSIS</h2></div>', unsafe_allow_html=True)
+    
+    st.sidebar.markdown("<h1 class='animated-sidebar-text'>MARKET DEMAND AND SALES ANALYSIS</h1>", unsafe_allow_html=True)
+   
     
     st.markdown("""
     <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; border-left: 4px solid #3b82f6; margin-bottom: 25px;">
@@ -57,7 +59,7 @@ def run():
 
     if df.empty: return
 
-    # --- 1. PRODUCT DISTRIBUTION ---
+    # PRODUCT DISTRIBUTION
     st.markdown('<h2 class="animate-header">🔍 Inspecting Product Distribution</h2>', unsafe_allow_html=True)
     product_count = df['Kategori Produk'].value_counts().reset_index()
     product_count.columns = ['Kategori Produk', 'Total']
@@ -72,7 +74,7 @@ def run():
         fig_pie.update_traces(textinfo='percent+label', marker=dict(line=dict(color='#1e293b', width=2)))
         st.plotly_chart(apply_plotly_style(fig_pie), use_container_width=True)
 
-    # --- 2. MONTHLY SALES DISTRIBUTION ---
+    # MONTHLY SALES DISTRIBUTION
     st.markdown('<h2 class="animate-header">📈 1. Monthly Sales Distribution</h2>', unsafe_allow_html=True)
     df['year_month'] = df['Waktu Pesanan Dibuat'].dt.to_period('M').astype(str)
     monthly_category = df.groupby(['year_month','Kategori Produk'])['Jumlah Terjual Bersih'].sum().reset_index()
@@ -84,7 +86,7 @@ def run():
     pivot_df = monthly_category.pivot(index='year_month', columns='Kategori Produk', values='Jumlah Terjual Bersih').fillna(0)
     st.write(pivot_df.std().sort_values(ascending=False))
 
-    # --- 3. TRENDS & GROWTH ---
+    # TRENDS & GROWTH
     st.markdown('<h2 class="animate-header">🚀 2. Monthly Sales Trend and Growth</h2>', unsafe_allow_html=True)
     monthly_total = df.groupby('year_month')['Jumlah Terjual Bersih'].sum().reset_index()
     monthly_total['MoM_growth_pct'] = monthly_total['Jumlah Terjual Bersih'].pct_change() * 100
@@ -106,7 +108,7 @@ def run():
         fig_roll.update_traces(marker_color='#a855f7')
         st.plotly_chart(apply_plotly_style(fig_roll), use_container_width=True)
 
-    # --- 4. REVENUE ANALYSIS ---
+    # REVENUE ANALYSIS
     st.markdown('<h2 class="animate-header">💰 3. Gross and Net Revenue</h2>', unsafe_allow_html=True)
     df['Total Harga'] = df[['Total Pembayaran','Total Diskon','Ongkos Kirim Dibayar oleh Pembeli']].sum(axis=1)
     rev_sum = df.groupby('Kategori Produk').agg(
@@ -123,7 +125,7 @@ def run():
     fig_rev.update_layout(barmode='group')
     st.plotly_chart(apply_plotly_style(fig_rev), use_container_width=True)
 
-    # --- 5. LOGISTICS & REGION ---
+    # LOGISTICS & REGION
     st.markdown('<h2 class="animate-header">🚚 4. Logistics & Region Insights</h2>', unsafe_allow_html=True)
     col_op1, col_op2 = st.columns(2)
     with col_op1:
@@ -142,7 +144,7 @@ def run():
     fig_ship = px.bar(ship_prov, x='Ongkos Kirim Dibayar oleh Pembeli', y='Provinsi', orientation='h', color_discrete_sequence=['#f97316'])
     st.plotly_chart(apply_plotly_style(fig_ship), use_container_width=True)
 
-    # --- 6. PAYMENT METHODS ---
+    # PAYMENT METHODS
     st.markdown('<h2 class="animate-header">💳 5. Payment Methods Analysis</h2>', unsafe_allow_html=True)
     pay_sum = df.groupby('Metode Pembayaran').agg({'Jumlah':'sum', 'Total Pembayaran':'sum'}).reset_index()
     col_p1, col_p2 = st.columns(2)
@@ -153,7 +155,7 @@ def run():
         fig_pay2 = px.bar(pay_sum.sort_values('Total Pembayaran', ascending=False), x='Total Pembayaran', y='Metode Pembayaran', orientation='h', title="By Revenue")
         st.plotly_chart(apply_plotly_style(fig_pay2), use_container_width=True)
 
-    # --- EXECUTIVE SUMMARY ---
+    # EXECUTIVE SUMMARY
     st.divider()
     st.header("🏛️ Executive Summary")
     st.info("1. Dominasi Produk: Kitchen & Dining. 2. Pola Demand: Fluktuatif. 3. Logistik: Ongkir Timur Indonesia Tinggi.")

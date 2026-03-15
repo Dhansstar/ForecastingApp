@@ -15,8 +15,7 @@ def main():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     local_css(os.path.join(current_dir, "style.css"))
 
-    st.sidebar.markdown('<h1 class="animate-header">📊 DemandSense</h1>', unsafe_allow_html=True)
-    
+    st.sidebar.markdown("<h1 class='animated-sidebar-text'> DemandSense</h1>", unsafe_allow_html=True)
     st.sidebar.write("**Practitioner:** by Risyadhana Syaifuddin")
     st.sidebar.write("**Project ID:** DemandSense AI")
     st.sidebar.markdown("---")

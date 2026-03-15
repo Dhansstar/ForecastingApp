@@ -42,17 +42,12 @@ def run():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     local_css(os.path.join(current_dir, "style.css"))
 
-    # --- SIDEBAR ENHANCEMENT ---
-    st.sidebar.markdown("<h1 class='animated-sidebar-text'>📊 DemandSense</h1>", unsafe_allow_html=True)
-    st.sidebar.write("**Practitioner:** by Risyadhana Syaifuddin")
-    st.sidebar.write("**Project ID:** DemandSense AI")
-    st.sidebar.markdown("---")
 
-    # --- MAIN HEADER ---
+    # MAIN HEADER
     st.markdown("<h1 class='animated-header'>🚀 DemandSense AI: Pro-Level Forecasting</h1>", unsafe_allow_html=True)
     st.markdown("---")
 
-    # --- DATA LOADING ---
+    # DATA LOADING
     files = glob.glob(os.path.join(current_dir, "forecast_*_data.csv"))
     if not files:
         st.error("❌ Data CSV tidak ditemukan!")
@@ -71,7 +66,7 @@ def run():
     full_df = pd.concat(all_dfs, ignore_index=True).sort_values('Waktu Pesanan Dibuat')
     categories = full_df['Kategori'].unique()
 
-    # --- ENSEMBLE INFERENCE (FIXED) ---
+    # ENSEMBLE INFERENCE (FIXED)
     final_report_list = []
     for kat in categories:
         temp = full_df[full_df['Kategori'] == kat].tail(30)
@@ -99,7 +94,7 @@ def run():
     report_df = pd.DataFrame(final_report_list)
     long_term_report = generate_long_term_forecast(report_df, categories)
 
-    # --- CONTROL PANEL ---
+    # CONTROL PANEL
     target_kat = st.sidebar.selectbox("Pilih Kategori Produk:", categories)
     target_hz = st.sidebar.radio("Pilih Horizon Perencanaan:", ["1 Months", "3 Months", "6 Months"])
 
@@ -115,7 +110,7 @@ def run():
     
     conn_dates, conn_values = [last_date] + list(forecast_dates), [last_val] + list(daily_forecast)
 
-    # --- DASHBOARD CHART & TABLE ---
+    # DASHBOARD CHART & TABLE
     st.subheader(f"📊 Detailed Forecast: {target_kat} ({target_hz})")
     fig = make_subplots(rows=2, cols=1, vertical_spacing=0.02, specs=[[{"type": "table"}], [{"type": "scatter"}]], row_heights=[0.2, 0.8])
 
@@ -132,7 +127,7 @@ def run():
     fig.update_layout(height=850, template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', margin=dict(t=10, b=10))
     st.plotly_chart(fig, use_container_width=True)
 
-    # --- GLOBAL DISTRIBUTION ---
+    # GLOBAL DISTRIBUTION
     st.markdown("---")
     st.subheader(f"📊 Global Stock Distribution ({target_hz})")
     current_hz_data = long_term_report[long_term_report['Horizon'] == target_hz]
