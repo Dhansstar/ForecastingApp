@@ -96,6 +96,7 @@ def run():
 
     # CONTROL PANEL
     target_kat = st.sidebar.selectbox("Pilih Kategori Produk:", categories)
+    st.markdown("---")
     target_hz = st.sidebar.radio("Pilih Horizon Perencanaan:", ["1 Months", "3 Months", "6 Months"])
 
     row_data = long_term_report[(long_term_report['Kategori'] == target_kat) & (long_term_report['Horizon'] == target_hz)].iloc[0]

@@ -64,13 +64,15 @@ def main():
     with st.sidebar:
         # Header Animated
         st.markdown("<h1 class='animated-sidebar-text'>DemandSense</h1>", unsafe_allow_html=True)
-        
+        st.markdown("---")
+
+
         # Practitioner Card (Bootstrap & Glassmorphism)
         st.markdown("""
             <div class="card bg-dark border-secondary mb-4 shadow-sm" style="background: rgba(255,255,255,0.05) !important; backdrop-filter: blur(10px);">
                 <div class="card-body p-3">
                     <div class="d-flex align-items-center mb-2">
-                        <div class="badge bg-primary me-2">PRO</div>
+                        <div class="badge bg-primary me-2">Time Series</div>
                         <span class="fw-bold text-white small">Practitioner Info</span>
                     </div>
                     <p class="text-light small mb-1"><strong>Name:</strong> Risyadhana Syaifuddin</p>
@@ -86,7 +88,7 @@ def main():
             ["EDA Analysis", "Demand Forecasting"], 
             label_visibility="collapsed"
         )
-        
+        st.markdown("---")
         
     # NAVIGATION LOGIC
     if menu == "EDA Analysis":
