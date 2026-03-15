@@ -17,9 +17,26 @@
 }
 
 /* ============================================================
-   2. ANIMATED HEADERS (MAIN & SIDEBAR)
+   2. PEMBATAS GARIS (HR) RGB GERAK
    ============================================================ */
-/* Header Utama (Ungu-Pink) */
+hr {
+    height: 2px !important;
+    border: none !important;
+    background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff) !important;
+    background-size: 300% 300% !important;
+    animation: rainbow-flow 4s linear infinite !important;
+    opacity: 0.8 !important;
+    margin: 25px 0 !important;
+}
+
+[data-testid="stSidebar"] hr {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    height: 1px !important;
+}
+
+/* ============================================================
+   3. ANIMATED HEADERS (MAIN & SIDEBAR)
+   ============================================================ */
 .animated-header {
     font-size: 3rem !important;
     font-weight: 800 !important;
@@ -33,7 +50,6 @@
     filter: drop-shadow(2px 2px 10px rgba(0,0,0,0.5));
 }
 
-/* Sidebar Logo (Neon Blue-Purple) */
 .animated-sidebar-text {
     font-size: 2.2rem !important;
     font-weight: 800 !important;
@@ -47,7 +63,7 @@
 }
 
 /* ============================================================
-   3. BOX DESKRIPSI & COMPONENTS (Glassmorphism)
+   4. BOX DESKRIPSI & COMPONENTS (Glassmorphism)
    ============================================================ */
 .animated-description {
     background: rgba(255, 255, 255, 0.07) !important;
@@ -70,13 +86,12 @@
 }
 
 /* ============================================================
-   4. SELECTBOX & ANIME.JS STYLING
+   5. SELECTBOX & ANAK PANAH RGB
    ============================================================ */
 .stSelectbox {
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* Buffer Anime.js */
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Dropdown styling */
 div[data-baseweb="select"] {
     background-color: rgba(255, 255, 255, 0.05) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -84,14 +99,19 @@ div[data-baseweb="select"] {
     backdrop-filter: blur(5px);
 }
 
-/* Warna teks pilihan di dalam dropdown */
 div[data-baseweb="select"] span, div[role="listbox"] {
     color: white !important;
     background-color: #1e293b !important;
 }
 
+/* Anak Panah Dropdown RGB Gerak */
+div[data-baseweb="select"] svg {
+    fill: white !important;
+    animation: rgb-icon-motion 5s linear infinite !important;
+}
+
 /* ============================================================
-   5. BOOTSTRAP CARDS & UI ELEMENTS
+   6. BOOTSTRAP CARDS & UI ELEMENTS
    ============================================================ */
 .card {
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -122,15 +142,23 @@ div[data-baseweb="select"] span, div[role="listbox"] {
 }
 
 /* ============================================================
-   6. TOOLBAR & HEADER UI (Github Icon)
+   7. TOOLBAR, GITHUB & IKON DEPLOY RGB
    ============================================================ */
 header[data-testid="stHeader"] {
     background-color: rgba(0, 0, 0, 0) !important;
     backdrop-filter: blur(5px);
 }
 
+/* Ikon Deploy (Garis & Anak Panah) RGB Gerak */
+header[data-testid="stHeader"] .stDeployButton svg {
+    fill: white !important;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.8));
+    animation: rgb-motion 5s linear infinite !important;
+}
+
+/* GitHub & Menu Icon Glow */
 header[data-testid="stHeader"] svg {
-    fill: #3b82f6 !important;
+    fill: #3b82f6;
     filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.8));
 }
 
@@ -144,19 +172,42 @@ header[data-testid="stHeader"] button:hover svg {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-header[data-testid="stHeader"] .stButton > button {
-    background: rgba(255, 255, 255, 0.05) !important;
+header[data-testid="stHeader"] .stDeployButton > button {
+    background-color: transparent !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    color: white !important;
-    border-radius: 20px !important;
+    border-radius: 10px;
+    transition: 0.3s;
 }
 
 /* ============================================================
-   7. GLOBAL TEXT & KEYFRAMES
+   8. GLOBAL TEXT & KEYFRAMES (ANIMATIONS)
    ============================================================ */
 [data-testid="stWidgetLabel"] p, .stMarkdown p, h1, h2, h3, b {
     color: white !important;
     text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+/* Animasi untuk Garis HR */
+@keyframes rainbow-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Animasi untuk Ikon Panah & Deploy */
+@keyframes rgb-motion {
+    0% { filter: drop-shadow(0 0 5px #ff0000); fill: #ff0000; }
+    25% { filter: drop-shadow(0 0 5px #00ff00); fill: #00ff00; }
+    50% { filter: drop-shadow(0 0 5px #0000ff); fill: #0000ff; }
+    75% { filter: drop-shadow(0 0 5px #ffff00); fill: #ffff00; }
+    100% { filter: drop-shadow(0 0 5px #ff0000); fill: #ff0000; }
+}
+
+@keyframes rgb-icon-motion {
+    0% { filter: drop-shadow(0 0 3px #ff0000); fill: #ff0000; }
+    33% { filter: drop-shadow(0 0 3px #00ff00); fill: #00ff00; }
+    66% { filter: drop-shadow(0 0 3px #0000ff); fill: #0000ff; }
+    100% { filter: drop-shadow(0 0 3px #ff0000); fill: #ff0000; }
 }
 
 @keyframes gradient-flow {
