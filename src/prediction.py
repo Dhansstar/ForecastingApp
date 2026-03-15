@@ -45,7 +45,6 @@ def run():
 
     # MAIN HEADER
     st.markdown("<h1 class='animated-header'>🚀 DemandSense AI: Pro-Level Forecasting</h1>", unsafe_allow_html=True)
-    st.markdown("---")
 
     # DATA LOADING
     files = glob.glob(os.path.join(current_dir, "forecast_*_data.csv"))
