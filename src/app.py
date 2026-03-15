@@ -17,8 +17,8 @@ def main():
 
     st.sidebar.markdown('<h1 class="animate-header">📊 DemandSense</h1>', unsafe_allow_html=True)
     
-    st.sidebar.write("**Practitioner:** HCK-036")
-    st.sidebar.write("**Project ID:** ftds-hacktiv8-project-481914")
+    st.sidebar.write("**Practitioner:** by Risyadhana Syaifuddin")
+    st.sidebar.write("**Project ID:** DemandSense AI")
     st.sidebar.markdown("---")
     
     # Selectbox dengan animasi dari CSS

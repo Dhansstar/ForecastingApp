@@ -1,19 +1,23 @@
-/* style.css */
-/* =========================================
-   GLOBAL BACKGROUND & GRADIENT OVERLAY
-   ========================================= */
+/* BACKGROUND UTAMA */
 [data-testid="stAppViewContainer"] {
-    background: linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(20,30,48,0.7) 100%), 
-                url("https://images.unsplash.com/photo-1611974714024-463ef9f743e9?q=80&w=2070&auto=format&fit=crop") !important;
     background-size: cover !important;
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
 }
 
-/* =========================================
-   FIX: TRANSPARENT LABELS & SHARP TEXT
-   ========================================= */
+[data-testid="stAppViewContainer"]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.3); /* Overlay cerah tipis */
+    z-index: -1;
+}
+
+/* HAPUS KOTAK PUTIH PADA LABEL & MARKDOWN */
 [data-testid="stWidgetLabel"],
 .stMarkdown,
 div[data-testid="stMarkdownContainer"] p {
@@ -23,54 +27,37 @@ div[data-testid="stMarkdownContainer"] p {
     box-shadow: none !important;
 }
 
+/* TEKS PUTIH TAJAM DENGAN SHADOW */
 [data-testid="stWidgetLabel"] p,
-.stMarkdown p, h1, h2, h3 {
+.stMarkdown p,
+h1, h2, h3 {
     color: white !important;
     font-weight: bold !important;
     text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.9) !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
-/* =========================================
-   FORMS & INPUTS (GLASSMORPHISM)
-   ========================================= */
-[data-testid="stForm"], .stDataFrame {
-    background-color: rgba(0, 0, 0, 0.4) !important;
+/* FORM & SIDEBAR */
+[data-testid="stForm"] {
+    background-color: rgba(0, 0, 0, 0.5) !important;
     border-radius: 15px !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-div[data-baseweb="input"], div[data-baseweb="select"] {
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    padding: 20px !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 8px !important;
-    transition: all 0.3s ease-in-out;
 }
 
-/* Hover Effect untuk Input agar Animasi Bergerak */
-div[data-baseweb="input"]:hover, div[data-baseweb="select"]:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
-    border-color: #3b82f6 !important;
-}
-
-/* =========================================
-   SIDEBAR & ANIMATIONS
-   ========================================= */
 [data-testid="stSidebar"] {
     background-color: #1E1E1E !important;
-    border-right: 1px solid rgba(255,255,255,0.1);
 }
 
-[data-testid="stSidebar"] * {
+/* INPUT BOX TRANSPARAN */
+div[data-baseweb="input"] {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 8px !important;
+}
+
+div[data-baseweb="input"] input {
     color: white !important;
-}
-
-/* Header Animation */
-.animate-header {
-    animation: fadeInDown 1s ease-out;
-}
-
-@keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
+    font-weight: bold !important;
 }
