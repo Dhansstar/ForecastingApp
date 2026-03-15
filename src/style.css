@@ -1,63 +1,17 @@
-/* BACKGROUND UTAMA */
+/* GRADASI DEEP BLUE TO BLACK */
 [data-testid="stAppViewContainer"] {
-    background-size: cover !important;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #020617 100%) !important;
+    background-attachment: fixed !important;
 }
 
-[data-testid="stAppViewContainer"]::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.3); /* Overlay cerah tipis */
-    z-index: -1;
-}
-
-/* HAPUS KOTAK PUTIH PADA LABEL & MARKDOWN */
-[data-testid="stWidgetLabel"],
-.stMarkdown,
-div[data-testid="stMarkdownContainer"] p {
-    background-color: transparent !important;
-    background: none !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-/* TEKS PUTIH TAJAM DENGAN SHADOW */
-[data-testid="stWidgetLabel"] p,
-.stMarkdown p,
-h1, h2, h3 {
-    color: white !important;
-    font-weight: bold !important;
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.9) !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* FORM & SIDEBAR */
-[data-testid="stForm"] {
-    background-color: rgba(0, 0, 0, 0.5) !important;
-    border-radius: 15px !important;
-    padding: 20px !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-}
-
+/* SIDEBAR GRADASI BIAR SYNC */
 [data-testid="stSidebar"] {
-    background-color: #1E1E1E !important;
+    background: linear-gradient(180deg, #1e293b 0%, #020617 100%) !important;
 }
 
-/* INPUT BOX TRANSPARAN */
-div[data-baseweb="input"] {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
-    border-radius: 8px !important;
-}
-
-div[data-baseweb="input"] input {
+/* TEKS PUTIH TAJAM DENGAN SHADOW AGAR KONTRAS */
+[data-testid="stWidgetLabel"] p, .stMarkdown p, h1, h2, h3 {
     color: white !important;
     font-weight: bold !important;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.9) !important;
 }
