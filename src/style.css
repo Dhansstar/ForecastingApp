@@ -1,22 +1,31 @@
-/* GRADASI BACKGROUND UTAMA */
+/* ============================================================
+   1. DASAR LAYOUT & GRADASI BACKGROUND
+   ============================================================ */
 [data-testid="stAppViewContainer"] {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #020617 100%) !important;
     background-attachment: fixed !important;
 }
 
-/* GRADASI SIDEBAR */
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #1e293b 0%, #020617 100%) !important;
+    background: linear-gradient(180deg, #1e2b3f 0%, #020617 100%) !important;
     border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* ANIMATED GRADIENT HEADER (Dashboard Utama) */
+/* Hilangkan navigasi default Streamlit agar tidak double */
+[data-testid="stSidebarNav"] {
+    display: none !important;
+}
+
+/* ============================================================
+   2. ANIMATED HEADERS (MAIN & SIDEBAR)
+   ============================================================ */
+/* Header Utama (Ungu-Pink) */
 .animated-header {
     font-size: 3rem !important;
     font-weight: 800 !important;
     text-align: center;
     margin-bottom: 10px !important;
-    background: linear-gradient(to right, #3b82f6, #ef4444, #f59e0b, #3b82f6);
+    background: linear-gradient(to right, #a103fd, #cd44ef, #f50be9, #f63b89);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -24,7 +33,7 @@
     filter: drop-shadow(2px 2px 10px rgba(0,0,0,0.5));
 }
 
-/* ANIMATED GRADIENT SIDEBAR (Tulisan DemandSense) */
+/* Sidebar Logo (Neon Blue-Purple) */
 .animated-sidebar-text {
     font-size: 2.2rem !important;
     font-weight: 800 !important;
@@ -35,6 +44,119 @@
     animation: sidebar-gradient 6s ease infinite;
     filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.3));
     margin-bottom: 10px;
+}
+
+/* ============================================================
+   3. BOX DESKRIPSI & COMPONENTS (Glassmorphism)
+   ============================================================ */
+.animated-description {
+    background: rgba(255, 255, 255, 0.07) !important;
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 15px;
+    border-left: 5px solid #3b82f6;
+    margin-bottom: 25px;
+    color: white !important;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    animation: fadeInUp 1.2s ease-out forwards;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.animated-description:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    transition: 0.3s ease;
+    border-left: 5px solid #ef4444;
+}
+
+/* ============================================================
+   4. SELECTBOX & ANIME.JS STYLING
+   ============================================================ */
+.stSelectbox {
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* Buffer Anime.js */
+}
+
+/* Dropdown styling */
+div[data-baseweb="select"] {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    backdrop-filter: blur(5px);
+}
+
+/* Warna teks pilihan di dalam dropdown */
+div[data-baseweb="select"] span, div[role="listbox"] {
+    color: white !important;
+    background-color: #1e293b !important;
+}
+
+/* ============================================================
+   5. BOOTSTRAP CARDS & UI ELEMENTS
+   ============================================================ */
+.card {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(59, 130, 246, 0.5) !important;
+}
+
+.card p {
+    margin-bottom: 0px !important;
+    line-height: 1.4;
+}
+
+.badge.bg-primary {
+    background: linear-gradient(45deg, #3b82f6, #a855f7) !important;
+    border: none;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.text-muted {
+    color: #94a3b8 !important;
+}
+
+/* ============================================================
+   6. TOOLBAR & HEADER UI (Github Icon)
+   ============================================================ */
+header[data-testid="stHeader"] {
+    background-color: rgba(0, 0, 0, 0) !important;
+    backdrop-filter: blur(5px);
+}
+
+header[data-testid="stHeader"] svg {
+    fill: #3b82f6 !important;
+    filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.8));
+}
+
+header[data-testid="stHeader"] button:hover svg {
+    fill: #ef4444 !important;
+    filter: drop-shadow(0 0 10px rgba(239, 68, 68, 1));
+    transition: 0.3s ease;
+}
+
+.stApp header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+header[data-testid="stHeader"] .stButton > button {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    border-radius: 20px !important;
+}
+
+/* ============================================================
+   7. GLOBAL TEXT & KEYFRAMES
+   ============================================================ */
+[data-testid="stWidgetLabel"] p, .stMarkdown p, h1, h2, h3, b {
+    color: white !important;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
 }
 
 @keyframes gradient-flow {
@@ -48,76 +170,7 @@
     100% { background-position: 0% 50%; }
 }
 
-/* TEKS PUTIH TAJAM */
-[data-testid="stWidgetLabel"] p, .stMarkdown p, h1, h2, h3, b {
-    color: white !important;
-    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
-}
-
-/* ANIMASI BOX DESKRIPSI */
-.animated-description {
-    background: rgba(255, 255, 255, 0.07) !important; /* Glass effect */
-    backdrop-filter: blur(10px);
-    padding: 20px;
-    border-radius: 15px;
-    border-left: 5px solid #3b82f6;
-    margin-bottom: 25px;
-    color: white !important;
-    font-size: 1.05rem;
-    line-height: 1.6;
-    
-    /* Pemicu Animasi */
-    animation: fadeInUp 1.2s ease-out forwards;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-}
-
-/* KEYFRAMES UNTUK EFEK MUNCUL DARI BAWAH */
 @keyframes fadeInUp {
-    0% {
-        opacity: 0;
-        transform: translateY(30px); /* Mulai dari 30px di bawah */
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0); /* Selesai di posisi asli */
-    }
-}
-
-/* EFEK HOVER (Opsional: Biar pas kursor lewat, kotaknya agak nyala) */
-.animated-description:hover {
-    background: rgba(255, 255, 255, 0.12) !important;
-    transition: 0.3s ease;
-    border-left: 5px solid #ef4444; /* Berubah jadi merah pas dihover */
-}
-
-/* DESIGN HEADER / TOOLBAR ATAS */
-header[data-testid="stHeader"] {
-    background-color: rgba(0, 0, 0, 0) !important; /* Bikin transparan total */
-    backdrop-filter: blur(5px); /* Efek blur tipis pas di-scroll */
-}
-
-/* CUSTOM GITHUB & MENU ICON */
-header[data-testid="stHeader"] svg {
-    fill: #3b82f6 !important; /* Warna biru neon */
-    filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.8)); /* Efek glow */
-}
-
-/* EFEK HOVER PADA IKON GITHUB */
-header[data-testid="stHeader"] button:hover svg {
-    fill: #ef4444 !important; /* Berubah jadi merah pas di-hover */
-    filter: drop-shadow(0 0 10px rgba(239, 68, 68, 1));
-    transition: 0.3s ease;
-}
-
-/* MENGHILANGKAN GARIS BAWAH DEFAULT STREAMLIT */
-.stApp header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-/* TOMBOL 'SHARE' BIAR LEBIH CAKEP */
-header[data-testid="stHeader"] .stButton > button {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    color: white !important;
-    border-radius: 20px !important;
+    0% { opacity: 0; transform: translateY(30px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
