@@ -53,3 +53,39 @@
     color: white !important;
     text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
 }
+
+/* ANIMASI BOX DESKRIPSI */
+.animated-description {
+    background: rgba(255, 255, 255, 0.07) !important; /* Glass effect */
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 15px;
+    border-left: 5px solid #3b82f6;
+    margin-bottom: 25px;
+    color: white !important;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    
+    /* Pemicu Animasi */
+    animation: fadeInUp 1.2s ease-out forwards;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* KEYFRAMES UNTUK EFEK MUNCUL DARI BAWAH */
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px); /* Mulai dari 30px di bawah */
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0); /* Selesai di posisi asli */
+    }
+}
+
+/* EFEK HOVER (Opsional: Biar pas kursor lewat, kotaknya agak nyala) */
+.animated-description:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    transition: 0.3s ease;
+    border-left: 5px solid #ef4444; /* Berubah jadi merah pas dihover */
+}

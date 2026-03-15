@@ -45,12 +45,12 @@ def load_data():
 
 def run():
     
-    st.sidebar.markdown("<h1 class='animated-sidebar-text'>MARKET DEMAND AND SALES ANALYSIS</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 class='animated-header'> Market Demand And Sales Analysis</h1>", unsafe_allow_html=True)
    
     
     st.markdown("""
-    <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; border-left: 4px solid #3b82f6; margin-bottom: 25px;">
-    Analisis ini bertujuan untuk memahami pola permintaan penjualan pada e-commerce sales dataset melalui eksplorasi tren penjualan, distribusi produk, perilaku pembelian konsumen, serta faktor operasional yang mempengaruhi transaksi. Insight yang dihasilkan digunakan sebagai dasar untuk memahami dinamika permintaan sebelum dilakukan proses demand forecasting.
+    <div class="animated-description">
+        Analisis ini bertujuan untuk memahami pola permintaan penjualan pada e-commerce sales dataset melalui eksplorasi tren penjualan, distribusi produk, perilaku pembelian konsumen, serta faktor operasional yang mempengaruhi transaksi. Insight yang dihasilkan digunakan sebagai dasar untuk memahami dinamika permintaan sebelum dilakukan proses demand forecasting.
     </div>
     """, unsafe_allow_html=True)
 
