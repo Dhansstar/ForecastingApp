@@ -1,38 +1,33 @@
 import streamlit as st
-import os
-import sys
-
-# Tambahkan path agar bisa baca file di dalam src jika dipanggil dari luar
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 import eda
 import prediction
+import os
 
-# --- KONFIGURASI HALAMAN ---
-st.set_page_config(
-    page_title="DemandSense AI Dashboard",
-    page_icon="📦",
-    layout="wide"
-)
+def local_css(file_name):
+    if os.path.exists(file_name):
+        with open(file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-# --- CSS CUSTOM ---
-st.markdown("""
-<style>
-    .main { background-color: #0f172a; }
-    [data-testid="stSidebar"] { background-color: #1e293b; }
-    .stMetric { background-color: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155; }
-</style>
-""", unsafe_allow_html=True)
+def main():
+    st.set_page_config(page_title="DemandSense AI", layout="wide")
+    
+    # Inject CSS Global
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    local_css(os.path.join(current_dir, "style.css"))
 
-# --- SIDEBAR NAVIGATION ---
-st.sidebar.title("🚀 DemandSense AI")
-page = st.sidebar.selectbox("Pilih Modul:", ["Dashboard EDA", "AI Demand Forecasting"])
+    st.sidebar.markdown('<h1 class="animate-header">📊 DemandSense</h1>', unsafe_allow_html=True)
+    
+    st.sidebar.write("**Practitioner:** HCK-036")
+    st.sidebar.write("**Project ID:** ftds-hacktiv8-project-481914")
+    st.sidebar.markdown("---")
+    
+    # Selectbox dengan animasi dari CSS
+    menu = st.sidebar.selectbox("Navigate Menu:", ["EDA Analysis", "Demand Forecasting"])
 
-st.sidebar.divider()
-st.sidebar.info("Gunakan modul EDA untuk analisis historis dan Demand Forecasting untuk prediksi stok.")
+    if menu == "EDA Analysis":
+        eda.run()
+    else:
+        prediction.run()
 
-# --- ROUTING ---
-if page == "Dashboard EDA":
-    eda.run()
-else:
-    prediction.run()
+if __name__ == "__main__":
+    main()
