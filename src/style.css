@@ -89,3 +89,35 @@
     transition: 0.3s ease;
     border-left: 5px solid #ef4444; /* Berubah jadi merah pas dihover */
 }
+
+/* DESIGN HEADER / TOOLBAR ATAS */
+header[data-testid="stHeader"] {
+    background-color: rgba(0, 0, 0, 0) !important; /* Bikin transparan total */
+    backdrop-filter: blur(5px); /* Efek blur tipis pas di-scroll */
+}
+
+/* CUSTOM GITHUB & MENU ICON */
+header[data-testid="stHeader"] svg {
+    fill: #3b82f6 !important; /* Warna biru neon */
+    filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.8)); /* Efek glow */
+}
+
+/* EFEK HOVER PADA IKON GITHUB */
+header[data-testid="stHeader"] button:hover svg {
+    fill: #ef4444 !important; /* Berubah jadi merah pas di-hover */
+    filter: drop-shadow(0 0 10px rgba(239, 68, 68, 1));
+    transition: 0.3s ease;
+}
+
+/* MENGHILANGKAN GARIS BAWAH DEFAULT STREAMLIT */
+.stApp header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* TOMBOL 'SHARE' BIAR LEBIH CAKEP */
+header[data-testid="stHeader"] .stButton > button {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    border-radius: 20px !important;
+}
