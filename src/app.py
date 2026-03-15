@@ -4,10 +4,10 @@ import eda
 import prediction
 import os
 
-# --- 1. SET PAGE CONFIG (HARUS DI PALING ATAS) ---
+# SET PAGE CONFIG (HARUS DI PALING ATAS)
 st.set_page_config(page_title="DemandSense AI", layout="wide")
 
-# --- 2. CSS & JS INJECTORS ---
+# CSS & JS INJECTORS
 def local_css(file_name):
     """Fungsi untuk memuat file style.css eksternal."""
     if os.path.exists(file_name):
@@ -57,7 +57,7 @@ def main():
     local_css(os.path.join(current_dir, "style.css"))
     inject_anime_js()
 
-    # --- 3. SIDEBAR WITH BOOTSTRAP DESIGN ---
+    # SIDEBAR WITH BOOTSTRAP DESIGN 
     # Load Bootstrap CSS
     st.sidebar.markdown('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">', unsafe_allow_html=True)
     
@@ -87,10 +87,8 @@ def main():
             label_visibility="collapsed"
         )
         
-        st.markdown("---")
-        st.markdown("<p class='text-muted small text-center'>© 2026 DemandSense System</p>", unsafe_allow_html=True)
-
-    # --- 4. NAVIGATION LOGIC ---
+        
+    # NAVIGATION LOGIC
     if menu == "EDA Analysis":
         eda.run()
     else:
